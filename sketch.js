@@ -1,5 +1,10 @@
 let puntos = [];
+let curve = [];
 let totPuntos = 0;
+let t = 0;
+let flag = true;
+let tiempo = 5;
+let cnv;
 let color = [
     [249, 65, 68],
     [243, 114, 44],
@@ -13,38 +18,67 @@ let color = [
     [39, 125, 161]
 ];
 function setup() {
+    frameRate(60);
     createCanvas(windowWidth, windowHeight);
     fill(255);
     strokeWeight(5);
+    cnv = createGraphics(windowWidth, windowHeight);
+    cnv.stroke(255);
+    cnv.strokeWeight(5);
+    cnv.noFill();
 }
 
 function draw() {
     background(3, 43, 67);
-    for (let i = 0; i < puntos.length; i++) {
-        stroke(color[i][0], color[i][1], color[i][2])
-        for (let j = 0; j < puntos[i].length; j++) {
-            puntos[i][j].display();
-            //console.log(puntos[i][j]);
+    t = (sin(PI * frameCount / (60 * tiempo)) + 1) / 2;
+    drawPoints(puntos, t, 0);
+    image(cnv, 0, 0);
+}
+
+function drawPoints(pnt, t, k) {
+    if (pnt.length) {
+        sig = [];
+        stroke(color[k][0], color[k][1], color[k][2]);
+        for (let i = 1; i < pnt.length; i++) {
+            sig.push(percent(pnt[i], pnt[i - 1], t));
+            line(pnt[i].x, pnt[i].y, pnt[i - 1].x, pnt[i - 1].y);
+        }
+        for (let i = 0; i < pnt.length; i++) {
+            pnt[i].display();
+        }
+        k++;
+        //console.log(i);
+        drawPoints(sig, t, k);
+    }
+    if (pnt.length === 1 && flag) {
+        if (curve.length > 60 * tiempo * 2) {
+            flag = false;
+            console.log("Done");
+        } else {
+            cnv.clear();
+            curve.push(pnt[0]);
+            cnv.beginShape();
+            for (let i = 0; i < curve.length; i++) {
+                cnv.curveVertex(curve[i].x, curve[i].y);
+            }
+            cnv.endShape();
         }
     }
 }
 
 function mouseReleased() {
-    puntos.push(new Array());
-    totPuntos++;
-    puntos[0].push(new Point(mouseX, mouseY))
-    for (let i = 1; i < puntos.length; i++) {
-        puntos[i].push(prom(puntos[i - 1]))
+    if (totPuntos != color.length) {
+        totPuntos++;
+        puntos.push(new Point(mouseX, mouseY));
     }
-
-    console.log("_____________")
+    curve = [];
+    cnv.clear();
+    flag = true;
 }
 
-function prom(list) {
-    let ultimo = list[list.length - 1];
-    let penult = list[list.length - 2];
-    let x = (ultimo.x + penult.x) / 2;
-    let y = (ultimo.y + penult.y) / 2;
+function percent(ultimo, penult, t) {
+    let x = (ultimo.x * (1 - t) + penult.x * t);
+    let y = (ultimo.y * (1 - t) + penult.y * t);
     return new Point(x, y);
 }
 
