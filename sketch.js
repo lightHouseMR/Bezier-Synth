@@ -5,6 +5,9 @@ let t = 0;
 let flag = true;
 let tiempo = 5;
 let cnv;
+// let button;
+let osc1;
+let osc2;
 let color = [
     [249, 65, 68],
     [243, 114, 44],
@@ -19,15 +22,28 @@ let color = [
 ];
 function setup() {
     frameRate(60);
-    createCanvas(windowWidth, windowHeight);
+    c = createCanvas(windowWidth * 1, windowHeight * 1);
+    c.mouseReleased(aniadir);
     fill(255);
     strokeWeight(5);
     cnv = createGraphics(windowWidth, windowHeight);
     cnv.stroke(255);
     cnv.strokeWeight(5);
     cnv.noFill();
+    /*     button = createButton('Borrar');
+        button.position(width * 0.9, height * 0.9);
+        button.mousePressed(boton); */
+    osc1 = new p5.Oscillator('sine');
+    osc2 = new p5.Oscillator('sine');
 }
 
+/* function boton() {
+    puntos = [];
+    totPuntos = 0;
+    osc1.stop();
+    osc2.stop();
+    cnv.clear();
+} */
 function draw() {
     background(3, 43, 67);
     t = (sin(PI * frameCount / (60 * tiempo)) + 1) / 2;
@@ -50,27 +66,34 @@ function drawPoints(pnt, t, k) {
         //console.log(i);
         drawPoints(sig, t, k);
     }
-    if (pnt.length === 1 && flag) {
-        if (curve.length > 60 * tiempo * 2) {
-            flag = false;
-            console.log("Done");
-        } else {
-            cnv.clear();
-            curve.push(pnt[0]);
-            cnv.beginShape();
-            for (let i = 0; i < curve.length; i++) {
-                cnv.curveVertex(curve[i].x, curve[i].y);
+    if (pnt.length === 1) {
+        osc1.freq(map(pnt[0].x, 0, width, 30, 1000));
+        osc2.freq(map(pnt[0].y, 0, width, 30, 1000));
+        if (flag) {
+            if (curve.length > 60 * tiempo * 2) {
+                flag = false;
+                console.log("Done");
+            } else {
+                cnv.clear();
+                curve.push(pnt[0]);
+                cnv.beginShape();
+                for (let i = 0; i < curve.length; i++) {
+                    cnv.curveVertex(curve[i].x, curve[i].y);
+                }
+                cnv.endShape();
             }
-            cnv.endShape();
         }
+
     }
 }
 
-function mouseReleased() {
+function aniadir() {
     if (totPuntos != color.length) {
         totPuntos++;
         puntos.push(new Point(mouseX, mouseY));
     }
+    osc1.start();
+    osc2.start();
     curve = [];
     cnv.clear();
     flag = true;
